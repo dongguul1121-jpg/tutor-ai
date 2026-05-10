@@ -38,6 +38,14 @@ system_prompt = f"""
 
 # 5. 웹사이트 화면 구성
 st.set_page_config(page_title="동국 튜터 AI", page_icon="🎓")
+hide_menu_style = """
+<style>
+header {visibility: hidden;}
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+</style>
+"""
+st.markdown(hide_menu_style, unsafe_allow_html=True)
 st.title("🎓 동국 튜터 수능 영어 풀이 AI")
 st.markdown("막히는 문제 사진을 올려주시면, 동국 튜터의 논리 독해 비법으로 뼈대를 발라드립니다!")
 
