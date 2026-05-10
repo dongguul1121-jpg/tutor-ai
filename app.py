@@ -40,19 +40,23 @@ system_prompt = f"""
 st.set_page_config(page_title="동국 튜터 AI", page_icon="🎓")
 hide_menu_style = """
 <style>
-/* 상단 헤더와 툴바 완벽 숨기기 */
-header {visibility: hidden;}
-#MainMenu {visibility: hidden;}
-[data-testid="stToolbar"] {visibility: hidden !important;}
+/* 1. 상단 기본 메뉴와 헤더를 아예 공간째로 날려버림 */
+header {visibility: hidden !important; display: none !important;}
+#MainMenu {visibility: hidden !important; display: none !important;}
+[data-testid="stHeader"] {visibility: hidden !important; display: none !important;}
+[data-testid="stToolbar"] {visibility: hidden !important; display: none !important;}
 
-/* 하단 워터마크 숨기기 */
-footer {visibility: hidden;}
+/* 2. 하단 Made with Streamlit 워터마크 숨기기 */
+footer {visibility: hidden !important;}
 
-/* 우측 상/하단 배지, 프로필, Deploy 버튼 강제 삭제 */
+/* 3. 종이배(Deploy) 버튼의 모든 가능한 이름표 강제 삭제 */
+.stAppDeployButton {display: none !important;}
+[data-testid="stAppDeployButton"] {display: none !important;}
+button[kind="header"] {display: none !important;}
+
+/* 4. 프로필 아이콘 및 기타 배지 숨기기 */
 .viewerBadge_container {display: none !important;}
 .viewerBadge_link {display: none !important;}
-[data-testid="stAppDeployButton"] {display: none !important;}
-#st-deploy-button {display: none !important;}
 </style>
 """
 st.markdown(hide_menu_style, unsafe_allow_html=True)
