@@ -60,7 +60,7 @@ button[kind="header"] {display: none !important;}
 </style>
 """
 st.markdown(hide_menu_style, unsafe_allow_html=True)
-st.title("🎓 동국 튜터 수능 영어 풀이 AI")
+st.title("🎓 수능 영어 풀이 AI")
 st.markdown("막히는 문제 사진을 올려주시면, 동국 튜터의 논리 독해 비법으로 뼈대를 발라드립니다!")
 
 # 파일 업로드 버튼
