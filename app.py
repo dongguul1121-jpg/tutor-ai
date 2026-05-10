@@ -40,17 +40,19 @@ system_prompt = f"""
 st.set_page_config(page_title="동국 튜터 AI", page_icon="🎓")
 hide_menu_style = """
 <style>
-/* 상단 메뉴바 숨기기 */
+/* 상단 헤더와 툴바 완벽 숨기기 */
 header {visibility: hidden;}
 #MainMenu {visibility: hidden;}
+[data-testid="stToolbar"] {visibility: hidden !important;}
 
-/* 하단 기본 워터마크 숨기기 */
+/* 하단 워터마크 숨기기 */
 footer {visibility: hidden;}
 
-/* 우측 하단 프로필 및 종이배 아이콘 강제 숨기기 */
-[data-testid="stAppDeployButton"] {display: none !important;}
-[data-testid="stViewerBadge"] {display: none !important;}
+/* 우측 상/하단 배지, 프로필, Deploy 버튼 강제 삭제 */
 .viewerBadge_container {display: none !important;}
+.viewerBadge_link {display: none !important;}
+[data-testid="stAppDeployButton"] {display: none !important;}
+#st-deploy-button {display: none !important;}
 </style>
 """
 st.markdown(hide_menu_style, unsafe_allow_html=True)
