@@ -5,7 +5,8 @@ import os
 
 # 1. Gemini API 키 설정 (본인의 키로 변경하세요)
 # 서버의 안전한 금고(secrets)에서 키를 꺼내오도록 수정
-GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]genai.configure(api_key=GOOGLE_API_KEY)
+GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
+genai.configure(api_key=GOOGLE_API_KEY)
 
 # 2. 사용할 AI 모델 설정
 model = genai.GenerativeModel('gemini-2.5-flash')
