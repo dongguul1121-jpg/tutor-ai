@@ -141,19 +141,19 @@ menu_col1, menu_col2 = st.columns([15, 1])
 
 with menu_col2:
     with st.popover("⋮"):
+        # 👇👇 이 코드로 로그아웃 버튼 부분을 교체하세요 👇👇
         if st.button("🚪 로그아웃", use_container_width=True):
-            # 1. 브라우저에서 쿠키를 먼저 삭제
-            cookie_manager.delete("current_user")
-            
-            # 2. 내 앱의 로그인 기억(세션)을 초기화
+            # 1. 내 앱의 로그인 기억(세션)을 먼저 완전히 삭제
             st.session_state.authenticated = False
             st.session_state.current_user = None
+            st.session_state.clear() # 남아있는 모든 기억 강제 초기화
             
-            # 3. 브라우저가 쿠키를 삭제할 수 있도록 충분한 시간(1초) 주기
-            time.sleep(1.0) 
+            # 2. 브라우저에서 방문증(쿠키) 파기 명령 내리기
+            cookie_manager.delete("current_user")
             
-            # 4. 이제 새로고침하여 로그인 화면으로 이동
+            # 3. 멈춤(time.sleep) 없이 즉시 화면 새로고침!
             st.rerun()
+
 
 
 
