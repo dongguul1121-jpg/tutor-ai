@@ -104,6 +104,8 @@ if saved_user:
 elif "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
+# (이전 쿠키 불러오는 코드는 그대로 유지)
+
 if not st.session_state.authenticated:
     st.title("🔒 동국 튜터 AI 로그인")
     st.markdown("수강생 전용 공간입니다. 발급받은 아이디와 비밀번호를 입력하세요.")
@@ -111,19 +113,26 @@ if not st.session_state.authenticated:
     user_id = st.text_input("아이디 (ID)")
     user_pw = st.text_input("비밀번호 (Password)", type="password")
     
+    # ⭐️ 핵심 1: 자동 로그인 체크박스 만들기 (기본값은 체크된 상태)
+    auto_login = st.checkbox("자동 로그인 (30일 유지)", value=True)
+    
     if st.button("로그인"):
-        # 입력한 아이디/비밀번호가 서버 금고(secrets)와 일치하는지 확인
         if user_id in st.secrets["users"] and st.secrets["users"][user_id] == user_pw:
             st.session_state.authenticated = True
             st.session_state.current_user = user_id
             
-            # ⭐️ 핵심: 로그인 성공 시 방문증(쿠키) 발급! (유효기간: 30일)
-            cookie_manager.set("current_user", user_id, max_age=30*24*60*60)
-            time.sleep(0.5) # 방문증이 브라우저에 안전하게 저장될 시간 주기
+            # ⭐️ 핵심 2: 자동 로그인에 체크했을 때만 방문증(쿠키)을 발급!
+            if auto_login:
+                cookie_manager.set("current_user", user_id, max_age=30*24*60*60)
+            
+            time.sleep(0.5) 
             st.rerun()
         else:
             st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
     st.stop()
+
+# (이하 우측 상단 로그아웃 메뉴 등 기존 코드 동일)
+
 
 # 3. 우측 상단 메뉴 & 로그아웃 기능 (방문증 파기 기능 추가)
 menu_col1, menu_col2 = st.columns([15, 1])
