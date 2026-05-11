@@ -137,23 +137,24 @@ if not st.session_state.authenticated:
 
 # 3. 우측 상단 메뉴 & 로그아웃 기능 (방문증 파기 기능 추가)
 
-menu_col1, menu_col2 = st.columns([15, 1])
 
+menu_col1, menu_col2 = st.columns([15, 1])
 with menu_col2:
     with st.popover("⋮"):
-        # 👇👇 이 코드로 다시 교체해 주세요 👇👇
         if st.button("🚪 로그아웃", use_container_width=True):
-            # 1. 브라우저에서 방문증(쿠키) 파기
-            cookie_manager.delete("current_user")
+            # 1. 에러 방어막: 방문증(쿠키)이 있을 때만 삭제하고, 없으면 조용히 넘어감
+            try:
+                cookie_manager.delete("current_user")
+            except KeyError:
+                pass 
             
-            # 2. 내 앱의 로그인 상태만 '콕' 집어서 안전하게 해제
+            # 2. 내 앱의 로그인 상태 해제
             st.session_state.authenticated = False
             st.session_state.current_user = None
             
-            # (st.session_state.clear()는 뺐습니다!)
-            
             # 3. 에러 없이 즉시 새로고침
             st.rerun()
+
 
 
 
