@@ -1,5 +1,9 @@
 import streamlit as st
 import google.generativeai as genai
+
+import extra_streamlit_components as stx
+import time
+
 from PIL import Image
 import os
 
@@ -84,50 +88,61 @@ h1 {
 st.markdown(hide_menu_style, unsafe_allow_html=True)
 
 
-# 👇👇 [정식 ID/PW 로그인 시스템] 👇👇
+# 👇👇 [자동 로그인 시스템 적용] 👇👇
 
-if "authenticated" not in st.session_state:
+# 1. 쿠키(방문증) 관리자 불러오기
+cookie_manager = stx.CookieManager()
+
+# 스트림릿이 쿠키를 읽어올 아주 짧은 시간(0.1초)을 줍니다.
+time.sleep(0.1)
+saved_user = cookie_manager.get(cookie="current_user")
+
+# 2. 방문증이 있으면 자동 통과, 없으면 로그인 창 띄우기
+if saved_user:
+    st.session_state.authenticated = True
+    st.session_state.current_user = saved_user
+elif "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
     st.title("🔒 동국 튜터 AI 로그인")
     st.markdown("수강생 전용 공간입니다. 발급받은 아이디와 비밀번호를 입력하세요.")
     
-    # 1. 아이디와 비밀번호 입력 칸 두 개 만들기
     user_id = st.text_input("아이디 (ID)")
     user_pw = st.text_input("비밀번호 (Password)", type="password")
     
     if st.button("로그인"):
-        # 2. 금고([users] 명단)에 입력한 아이디가 있는지, 그리고 비밀번호가 맞는지 확인
+        # 입력한 아이디/비밀번호가 서버 금고(secrets)와 일치하는지 확인
         if user_id in st.secrets["users"] and st.secrets["users"][user_id] == user_pw:
             st.session_state.authenticated = True
-            st.session_state.current_user = user_id  # 누가 로그인했는지 기억해둠
-            st.rerun() # 로그인 성공! 화면 새로고침
+            st.session_state.current_user = user_id
+            
+            # ⭐️ 핵심: 로그인 성공 시 방문증(쿠키) 발급! (유효기간: 30일)
+            cookie_manager.set("current_user", user_id, max_age=30*24*60*60)
+            time.sleep(0.5) # 방문증이 브라우저에 안전하게 저장될 시간 주기
+            st.rerun()
         else:
             st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
-            
-    # 로그인 전까지는 무조건 화면 멈춤
     st.stop()
-    
-# 👆👆 여기까지 [로그인 시스템] 끝 👆👆
 
-
-# 👇👇 지운 자리에 이 코드를 통째로 붙여넣으세요 👇👇
-
-# 1. 우측 상단 '점 3개' 로그아웃 버튼 만들기
+# 3. 우측 상단 메뉴 & 로그아웃 기능 (방문증 파기 기능 추가)
 menu_col1, menu_col2 = st.columns([15, 1])
 with menu_col2:
     with st.popover("⋮"):
         if st.button("🚪 로그아웃", use_container_width=True):
+            cookie_manager.delete("current_user") # ⭐️ 핵심: 방문증 파기
             st.session_state.authenticated = False
             st.session_state.current_user = None
+            time.sleep(0.5)
             st.rerun()
+            
+# 👆👆 여기까지 [자동 로그인 시스템] 끝 👆👆
 
-# 2. 메인 화면 제목
+
+# 4. 메인 화면 제목
 st.title("🎓 동국 튜터 수능 영어 AI")
 st.info(f"환영합니다, {st.session_state.current_user}님! 오늘도 논리 독해로 뼈대를 발라봅시다.")
 
-# 👆👆 여기까지입니다. 이 아래로는 원래 있던 문제 사진 업로드 코드(st.file_uploader)가 자연스럽게 이어지면 됩니다! 👆👆
 
 
 # 파일 업로드 버튼
