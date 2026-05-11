@@ -49,28 +49,40 @@ system_prompt = f"""
 
 # 5. 웹사이트 화면 구성
 st.set_page_config(page_title="동국 튜터 AI", page_icon="🎓")
+
 hide_menu_style = """
 <style>
-/* 1. 상단 기본 메뉴와 헤더를 아예 공간째로 날려버림 */
+/* 1. 상단 기본 메뉴와 헤더 숨기기 */
 header {visibility: hidden !important; display: none !important;}
 #MainMenu {visibility: hidden !important; display: none !important;}
 [data-testid="stHeader"] {visibility: hidden !important; display: none !important;}
 [data-testid="stToolbar"] {visibility: hidden !important; display: none !important;}
 
-/* 2. 하단 Made with Streamlit 워터마크 숨기기 */
+/* 2. 하단 워터마크 숨기기 */
 footer {visibility: hidden !important;}
 
-/* 3. 종이배(Deploy) 버튼의 모든 가능한 이름표 강제 삭제 */
+/* 3. 종이배 및 아이콘 숨기기 */
 .stAppDeployButton {display: none !important;}
 [data-testid="stAppDeployButton"] {display: none !important;}
 button[kind="header"] {display: none !important;}
-
-/* 4. 프로필 아이콘 및 기타 배지 숨기기 */
 .viewerBadge_container {display: none !important;}
 .viewerBadge_link {display: none !important;}
+
+/* 🎯 4. 제목 글자 크기 모바일 최적화 (새로 추가된 부분) */
+h1 {
+    word-break: keep-all !important; /* 단어 단위로 줄바꿈 방지 */
+}
+
+/* 화면 너비가 768px 이하(모바일)일 때 글자 크기를 확 줄임 */
+@media screen and (max-width: 768px) {
+    h1 {
+        font-size: 1.6rem !important; 
+    }
+}
 </style>
 """
 st.markdown(hide_menu_style, unsafe_allow_html=True)
+
 st.title("🎓 수능 영어 풀이 AI")
 st.markdown("막히는 문제 사진을 올려주시면, 동국 튜터의 논리 독해 비법으로 뼈대를 발라드립니다!")
 
