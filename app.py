@@ -17,7 +17,8 @@ try:
     with open("coze knowledge.txt", "r", encoding="utf-8") as f:
         knowledge_text = f.read()
 except FileNotFoundError:
-    st.error("오류: 'coze knowledge.txt' 파일을 같은 폴더에 
+    st.error("오류: 'coze knowledge.txt' 파일을 같은 폴더에 넣어주세요!")
+
              
 # 4. 동국 튜터의 영독해 페르소나 및 프롬프트 설정 (3단계 해설 포맷 적용)
 system_prompt = f"""
