@@ -112,9 +112,17 @@ if not st.session_state.authenticated:
 # 👆👆 여기까지 [로그인 시스템] 끝 👆👆
 
 
+st.title(f"🎓 동국 튜터 수능 영어 AI (환영합니다, {st.session_state.current_user}님!)")
 
-st.title("🎓 수능 영어 풀이 AI")
-st.markdown("막히는 문제 사진을 올려주시면, 동국 튜터의 논리 독해 비법으로 뼈대를 발라드립니다!")
+# 👇👇 새로 추가할 [사이드바 로그아웃 시스템] 👇👇
+with st.sidebar:
+    st.subheader(f"👤 {st.session_state.current_user}님 접속중")
+    st.markdown("---") # 구분선 
+    if st.button("🚪 로그아웃"):
+        st.session_state.authenticated = False  # 로그인 상태 해제
+        st.session_state.current_user = None    # 유저 정보 삭제
+        st.rerun()  # 화면을 새로고침하여 로그인 창으로 강제 이동
+# 👆👆 여기까지 [사이드바 로그아웃] 끝 👆👆
 
 # 파일 업로드 버튼
 uploaded_file = st.file_uploader("수능 영어 문제 사진을 업로드하세요", type=["jpg", "jpeg", "png"])
