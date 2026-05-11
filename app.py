@@ -137,6 +137,8 @@ if not st.session_state.authenticated:
 
 # 3. 우측 상단 메뉴 & 로그아웃 기능 (방문증 파기 기능 추가)
 
+menu_col1, menu_col2 = st.columns([15, 1])
+
 with menu_col2:
     with st.popover("⋮"):
         if st.button("🚪 로그아웃", use_container_width=True):
