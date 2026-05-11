@@ -90,8 +90,9 @@ st.markdown(hide_menu_style, unsafe_allow_html=True)
 
 # 👇👇 [자동 로그인 시스템 적용] 👇👇
 
-# 1. 쿠키(방문증) 관리자 불러오기
-cookie_manager = stx.CookieManager()
+# 수정 코드 (key 추가)
+cookie_manager = stx.CookieManager(key="dongguk_cookie_manager")
+
 
 # 스트림릿이 쿠키를 읽어올 아주 짧은 시간(0.1초)을 줍니다.
 time.sleep(0.1)
@@ -135,17 +136,23 @@ if not st.session_state.authenticated:
 
 
 # 3. 우측 상단 메뉴 & 로그아웃 기능 (방문증 파기 기능 추가)
-menu_col1, menu_col2 = st.columns([15, 1])
+
 with menu_col2:
     with st.popover("⋮"):
         if st.button("🚪 로그아웃", use_container_width=True):
-            cookie_manager.delete("current_user") # ⭐️ 핵심: 방문증 파기
+            # 1. 브라우저에서 쿠키를 먼저 삭제
+            cookie_manager.delete("current_user")
+            
+            # 2. 내 앱의 로그인 기억(세션)을 초기화
             st.session_state.authenticated = False
             st.session_state.current_user = None
-            time.sleep(0.5)
-            st.rerun()
             
-# 👆👆 여기까지 [자동 로그인 시스템] 끝 👆👆
+            # 3. 브라우저가 쿠키를 삭제할 수 있도록 충분한 시간(1초) 주기
+            time.sleep(1.0) 
+            
+            # 4. 이제 새로고침하여 로그인 화면으로 이동
+            st.rerun()
+
 
 
 # 4. 메인 화면 제목
