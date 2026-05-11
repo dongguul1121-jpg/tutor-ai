@@ -112,17 +112,23 @@ if not st.session_state.authenticated:
 # 👆👆 여기까지 [로그인 시스템] 끝 👆👆
 
 
-st.title(f"🎓 동국 튜터 수능 영어 AI (환영합니다, {st.session_state.current_user}님!)")
+# 👇👇 지운 자리에 이 코드를 통째로 붙여넣으세요 👇👇
 
-# 👇👇 새로 추가할 [사이드바 로그아웃 시스템] 👇👇
-with st.sidebar:
-    st.subheader(f"👤 {st.session_state.current_user}님 접속중")
-    st.markdown("---") # 구분선 
-    if st.button("🚪 로그아웃"):
-        st.session_state.authenticated = False  # 로그인 상태 해제
-        st.session_state.current_user = None    # 유저 정보 삭제
-        st.rerun()  # 화면을 새로고침하여 로그인 창으로 강제 이동
-# 👆👆 여기까지 [사이드바 로그아웃] 끝 👆👆
+# 1. 우측 상단 '점 3개' 로그아웃 버튼 만들기
+menu_col1, menu_col2 = st.columns([15, 1])
+with menu_col2:
+    with st.popover("⋮"):
+        if st.button("🚪 로그아웃", use_container_width=True):
+            st.session_state.authenticated = False
+            st.session_state.current_user = None
+            st.rerun()
+
+# 2. 메인 화면 제목
+st.title("🎓 동국 튜터 수능 영어 AI")
+st.info(f"환영합니다, {st.session_state.current_user}님! 오늘도 논리 독해로 뼈대를 발라봅시다.")
+
+# 👆👆 여기까지입니다. 이 아래로는 원래 있던 문제 사진 업로드 코드(st.file_uploader)가 자연스럽게 이어지면 됩니다! 👆👆
+
 
 # 파일 업로드 버튼
 uploaded_file = st.file_uploader("수능 영어 문제 사진을 업로드하세요", type=["jpg", "jpeg", "png"])
