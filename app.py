@@ -83,6 +83,36 @@ h1 {
 """
 st.markdown(hide_menu_style, unsafe_allow_html=True)
 
+
+# 👇👇 [정식 ID/PW 로그인 시스템] 👇👇
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+    st.title("🔒 동국 튜터 AI 로그인")
+    st.markdown("수강생 전용 공간입니다. 발급받은 아이디와 비밀번호를 입력하세요.")
+    
+    # 1. 아이디와 비밀번호 입력 칸 두 개 만들기
+    user_id = st.text_input("아이디 (ID)")
+    user_pw = st.text_input("비밀번호 (Password)", type="password")
+    
+    if st.button("로그인"):
+        # 2. 금고([users] 명단)에 입력한 아이디가 있는지, 그리고 비밀번호가 맞는지 확인
+        if user_id in st.secrets["users"] and st.secrets["users"][user_id] == user_pw:
+            st.session_state.authenticated = True
+            st.session_state.current_user = user_id  # 누가 로그인했는지 기억해둠
+            st.rerun() # 로그인 성공! 화면 새로고침
+        else:
+            st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
+            
+    # 로그인 전까지는 무조건 화면 멈춤
+    st.stop()
+    
+# 👆👆 여기까지 [로그인 시스템] 끝 👆👆
+
+
+
 st.title("🎓 수능 영어 풀이 AI")
 st.markdown("막히는 문제 사진을 올려주시면, 동국 튜터의 논리 독해 비법으로 뼈대를 발라드립니다!")
 
