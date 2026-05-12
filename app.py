@@ -338,12 +338,10 @@ if "current_image" not in st.session_state:
 
 # 1. 상단 메뉴 (페이지에 상관없이 항상 노출)
 
-menu_col1, menu_col2 = st.columns([15, 1])
-
-# 1. 상단 메뉴 (페이지에 상관없이 항상 노출)
+# 1. 상단 메뉴 구성 (페이지 상단 고정)
 menu_col1, menu_col2 = st.columns([15, 1])
 with menu_col2:
-    # ⭐️ 핵심: key에 현재 페이지 이름을 넣으면, 페이지가 바뀔 때 메뉴 버튼도 새것으로 교체됩니다!
+    # ⭐️ key값에 현재 페이지를 넣어 화면 이동 시 메뉴가 자동으로 닫히게 합니다.
     with st.popover("⋮", key=f"nav_popover_{st.session_state.page}"):
         if st.button("🏠 메인 화면", key="btn_go_main", use_container_width=True):
             st.session_state.page = "main"
@@ -353,22 +351,16 @@ with menu_col2:
             st.session_state.page = "library"
             st.rerun()
             
-       if st.button("🚪 로그아웃", key="btn_logout", use_container_width=True):
-        # 1. 브라우저 쿠키 삭제 명령
-          cookie_manager.delete("current_user")
-    
-    # 2. 세션 상태 즉시 해제 (가장 중요!)
-          st.session_state.authenticated = False
-          st.session_state.current_user = None
-    
-    # 3. 라이브러리 기억도 깨끗이 비우기
-          st.session_state.library = []
-    
-    # 4. 강제 새로고침 (이때 1번의 수정 덕분에 자동 로그인이 되지 않습니다!)
-          st.rerun()
-
-# 2. 세션 상태 초기화
-
+        # ⭐️ 에러가 났던 로그아웃 버튼 구역입니다.
+        if st.button("🚪 로그아웃", key="btn_logout", use_container_width=True):
+            # 브라우저 쿠키 삭제
+            cookie_manager.delete("current_user")
+            # 세션 상태 즉시 해제
+            st.session_state.authenticated = False
+            st.session_state.current_user = None
+            # 라이브러리 목록 비우기
+            st.session_state.library = []
+            st.rerun()
 
 # --- 화면 분기 처리 ---
 
