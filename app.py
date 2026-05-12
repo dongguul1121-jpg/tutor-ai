@@ -259,6 +259,8 @@ elif st.session_state.page == "main":
                         # [사진 압축 & 글자 변환] -> DB 저장을 위한 핵심!
                         img_small = st.session_state.current_image.copy()
                         img_small.thumbnail((800, 800))
+                        if img_small.mode == "RGBA":
+                            img_small = img_small.convert("RGB")
                         buf = io.BytesIO()
                         img_small.save(buf, format="JPEG", quality=60)
                         img_str = base64.b64encode(buf.getvalue()).decode()
