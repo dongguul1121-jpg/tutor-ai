@@ -30,7 +30,7 @@ db = firestore.client()
 # 2. Gemini AI 및 시스템 프롬프트 설정
 # ==========================================
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-model = genai.GenerativeModel('gemini-2.0-flash')
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 knowledge_text = ""
 try:
