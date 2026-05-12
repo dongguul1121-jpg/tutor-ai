@@ -408,7 +408,7 @@ if st.session_state.page == "library":
                 
                 with col1:
                     # 즐겨찾기 버튼은 왼쪽 칸에 위치 (글자 길이에 맞춰 정렬됨)
-                    btn_label = "⭐ 해제" if item.get("bookmarked", False) else "☆ 설정"
+                    btn_label = "⭐ 즐겨찾기 해제" if item.get("bookmarked", False) else "☆ 즐겨찾기 설정"
                     if st.button(btn_label, key=f"bookmark_{i}"):
                         new_status = not item.get("bookmarked", False)
                         db.collection("library").document(item["id"]).update({"bookmarked": new_status})
