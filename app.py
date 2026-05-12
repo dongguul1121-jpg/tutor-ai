@@ -404,21 +404,23 @@ if st.session_state.page == "library":
 
                 st.write(item["content"])
 
-                col1, col2 = st.columns(2)
+                col1, col2 = st.columns([6, 1]) 
+                
                 with col1:
-                    btn_label = "⭐ 즐겨찾기 해제" if item["bookmarked"] else "☆ 즐겨찾기 설정"
+                    # 즐겨찾기 버튼은 왼쪽 칸에 위치 (글자 길이에 맞춰 정렬됨)
+                    btn_label = "⭐ 해제" if item.get("bookmarked", False) else "☆ 설정"
                     if st.button(btn_label, key=f"bookmark_{i}"):
-                        new_status = not item["bookmarked"]
-                        if "id" in item:
-                            db.collection("library").document(item["id"]).update({"bookmarked": new_status})
+                        new_status = not item.get("bookmarked", False)
+                        db.collection("library").document(item["id"]).update({"bookmarked": new_status})
                         for entry in st.session_state.library:
                             if entry["id"] == item["id"]:
                                 entry["bookmarked"] = new_status
                         st.rerun()
+                        
                 with col2:
-                    if st.button("🗑️ 삭제", key=f"del_{i}"):
-                        if "id" in item:
-                            db.collection("library").document(item["id"]).delete()
+                    # 삭제 버튼은 이제 상자의 가장 우측 끝 칸에 안착합니다!
+                    if st.button("🗑️", key=f"del_{i}", use_container_width=True):
+                        db.collection("library").document(item["id"]).delete()
                         st.session_state.library = [e for e in st.session_state.library if e["id"] != item["id"]]
                         st.rerun()
 # 👇👇 여기서부터 복사해서 맨 아래까지 덮어쓰세요 👇👇
