@@ -236,16 +236,13 @@ saved_user = cookie_manager.get(cookie="current_user")
 
 # 2. 방문증이 있으면 자동 통과, 없으면 로그인 창 띄우기
 
-if saved_user:
-
-    st.session_state.authenticated = True
-
-    st.session_state.current_user = saved_user
-
-elif "authenticated" not in st.session_state:
-
-    st.session_state.authenticated = False
-
+# ⭐️ 핵심: 이미 'authenticated' 상태가 결정되어 있다면(예: 로그아웃 클릭), 쿠키를 다시 읽지 않습니다.
+if "authenticated" not in st.session_state:
+    if saved_user:
+        st.session_state.authenticated = True
+        st.session_state.current_user = saved_user
+    else:
+        st.session_state.authenticated = False
 
 
 # (이전 쿠키 불러오는 코드는 그대로 유지)
@@ -356,16 +353,19 @@ with menu_col2:
             st.session_state.page = "library"
             st.rerun()
             
-        if st.button("🚪 로그아웃", key="btn_logout", use_container_width=True):
-            try:
-                cookie_manager.delete("current_user")
-            except Exception:
-                pass 
-            st.session_state.authenticated = False
-            st.session_state.current_user = None
-            st.rerun()
-
-
+       if st.button("🚪 로그아웃", key="btn_logout", use_container_width=True):
+        # 1. 브라우저 쿠키 삭제 명령
+          cookie_manager.delete("current_user")
+    
+    # 2. 세션 상태 즉시 해제 (가장 중요!)
+          st.session_state.authenticated = False
+          st.session_state.current_user = None
+    
+    # 3. 라이브러리 기억도 깨끗이 비우기
+          st.session_state.library = []
+    
+    # 4. 강제 새로고침 (이때 1번의 수정 덕분에 자동 로그인이 되지 않습니다!)
+          st.rerun()
 
 # 2. 세션 상태 초기화
 
