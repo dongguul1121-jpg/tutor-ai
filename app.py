@@ -173,7 +173,7 @@ if uploaded_file is not None:
     st.image(image, caption="업로드된 문제", use_column_width=True)
     
     if st.button("동국 튜터식 해설 보기"):
-        with st.spinner("비법 지식을 바탕으로 지문의 뼈대를 분석하고 있습니다..."):
+        with st.spinner("지문을 분석하고 있습니다..."):
             try:
                 response = model.generate_content([system_prompt, image])
                 st.subheader("💡 동국 튜터의 명쾌한 해설")
