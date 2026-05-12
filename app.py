@@ -192,7 +192,7 @@ if st.session_state.page == "library":
     if len(st.session_state.library) == 0:
         st.info("아직 저장된 문제가 없습니다. 메인 화면에서 문제를 풀어보세요!")
     else:
-        sorted_lib = sorted(st.session_state.library, key=lambda x: x["bookmarked"], reverse=True)
+        sorted_lib = sorted(st.session_state.library[::-1], key=lambda x: x["bookmarked"], reverse=True)
         for i, item in enumerate(sorted_lib):
             star = "⭐️" if item["bookmarked"] else "☆"
             with st.expander(f"{star} {item['title']}"):
@@ -219,9 +219,18 @@ elif st.session_state.page == "main":
     st.title("🎓 동국 튜터 수능 영어 AI")
     st.info(f"환영합니다, {st.session_state.current_user}님! 오늘도 논리 독해로 뼈대를 발라봅시다.")
 
+    # ⭐️ [추가] 파일 변경 감지용 변수 초기화
+    if "last_uploaded_file_name" not in st.session_state:
+        st.session_state.last_uploaded_file_name = None
+
     uploaded_file = st.file_uploader("수능 영어 문제 사진을 업로드하세요", type=["jpg", "jpeg", "png"])
 
+    # ⭐️ [핵심 로직] 새로운 파일이 올라오면 이전 해설을 지웁니다.
     if uploaded_file is not None:
+        if st.session_state.last_uploaded_file_name != uploaded_file.name:
+            st.session_state.current_explanation = None # 이전 해설 초기화
+            st.session_state.last_uploaded_file_name = uploaded_file.name # 파일명 업데이트
+
         image = Image.open(uploaded_file)
         st.image(image, caption="업로드된 문제", use_column_width=True)
         
