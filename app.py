@@ -4,19 +4,24 @@ import extra_streamlit_components as stx
 import time
 from PIL import Image
 
-# 👇👇 이 3줄을 추가로 적어줍니다 👇👇
 import json
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# 👇👇 Firebase 연결 코드 (앱이 켜질 때 한 번만 실행됨) 👇👇
+# 👇👇 이 부분을 엑스레이 코드로 덮어씁니다 👇👇
 if not firebase_admin._apps:
-    # 스트림릿 금고에서 JSON 열쇠 꾸러미를 꺼내옵니다.
-    key_dict = json.loads(st.secrets["FIREBASE_JSON"])
-    cred = credentials.Certificate(key_dict)
-    firebase_admin.initialize_app(cred)
+    try:
+        raw_secret = st.secrets["FIREBASE_JSON"]
+        key_dict = json.loads(raw_secret)
+        cred = credentials.Certificate(key_dict)
+        firebase_admin.initialize_app(cred)
+    except Exception as e:
+        # 에러가 나면 빨간 줄 대신, 금고 안의 내용물을 화면에 그대로 토해냅니다!
+        st.error("🚨 열쇠(JSON) 모양에 문제가 있습니다! 아래 박스 안의 글자를 확인해주세요.")
+        st.code(st.secrets.get("FIREBASE_JSON", "열쇠가 비어있습니다!"))
+        st.error(f"파이썬의 불만(에러 내용): {e}")
+        st.stop()
 
-# 이제 db 변수를 통해 파이어베이스 창고에 마음대로 접근할 수 있습니다!
 db = firestore.client()
 
 # 1. Gemini API 키 설정 (본인의 키로 변경하세요)
