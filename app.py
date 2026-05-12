@@ -221,15 +221,20 @@ with menu_col2:
             st.rerun()
             
         # ⭐️ 에러가 났던 로그아웃 버튼 구역입니다.
-        # --- 로그아웃 버튼 구역 ---
         if st.button("🚪 로그아웃", key="btn_logout", use_container_width=True):
-            cookie_manager.delete("current_user") # 쿠키 파기
-            st.session_state.logout_active = True # 로그아웃 깃발 올림
+            try:
+                # 1. 쿠키 파기를 시도합니다.
+                cookie_manager.delete("current_user")
+            except Exception:
+                # 2. 만약 쿠키가 이미 없어서 에러(KeyError)가 나면 그냥 조용히 무시하고 넘어갑니다.
+                pass
+            
+            # 3. 나머지 상태 초기화는 그대로 진행
+            st.session_state.logout_active = True
             st.session_state.authenticated = False
             st.session_state.current_user = None
             st.session_state.library = []
             st.rerun()
-
 # --- 화면 분기 처리 ---
 
 
