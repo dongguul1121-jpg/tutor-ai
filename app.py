@@ -120,10 +120,18 @@ cookie_manager = stx.CookieManager(key="dongguk_cookie_manager")
 time.sleep(0.2) # 쿠키를 읽어올 수 있도록 아주 잠깐만 기다려줍니다.
 saved_user = cookie_manager.get(cookie="current_user")
 
-# 2. 로그인 상태 결정 로직 (수정된 부분)
+# --- 상단 로그인 체크 구역 ---
+if "logout_active" not in st.session_state:
+    st.session_state.logout_active = False
+
 if "authenticated" not in st.session_state:
-    # 아직 상태가 결정되지 않았다면 우선 False로 시작
     st.session_state.authenticated = False
+
+# ⭐️ 핵심: 로그아웃 버튼을 누른 게 아닐 때만 자동로그인을 시도합니다.
+if not st.session_state.authenticated and saved_user and not st.session_state.logout_active:
+    st.session_state.authenticated = True
+    st.session_state.current_user = saved_user
+    st.rerun()
 
 # ⭐️ 핵심: 로그인이 안 된 상태인데, 쿠키(방문증)가 뒤늦게 발견되었다면?
 if not st.session_state.authenticated and saved_user:
@@ -142,15 +150,17 @@ if not st.session_state.authenticated:
     user_pw = st.text_input("비밀번호 (Password)", type="password")
     # ⭐️ 핵심 1: 자동 로그인 체크박스 만들기 (기본값은 체크된 상태)
     auto_login = st.checkbox("자동 로그인 (30일 유지)", value=True)
-    if st.button("로그인"):
-        if user_id in st.secrets["users"] and st.secrets["users"][user_id] == user_pw:
-            st.session_state.authenticated = True
-            st.session_state.current_user = user_id
-            # ⭐️ 핵심 2: 자동 로그인에 체크했을 때만 방문증(쿠키)을 발급!
-            if auto_login:
-                cookie_manager.set("current_user", user_id, max_age=30*24*60*60)
-            time.sleep(0.5) 
-            st.rerun()
+    # --- 로그인 버튼 구역 ---
+if st.button("로그인", key="login_btn"):
+    if user_id in st.secrets["users"] and st.secrets["users"][user_id] == user_pw:
+        st.session_state.authenticated = True
+        st.session_state.current_user = user_id
+        st.session_state.logout_active = False # ⭐️ 다시 로그인했으니 깃발 내림!
+        
+        if auto_login:
+            cookie_manager.set("current_user", user_id, max_age=30*24*60*60)
+        
+        st.rerun()
         else:
             st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
     st.stop()
@@ -188,14 +198,19 @@ with menu_col2:
             st.rerun()
             
         # ⭐️ 에러가 났던 로그아웃 버튼 구역입니다.
+        # --- 로그아웃 버튼 구역 ---
         if st.button("🚪 로그아웃", key="btn_logout", use_container_width=True):
-            # 브라우저 쿠키 삭제
+    # 1. 브라우저에게 쿠키 삭제 명령 (실제 삭제까지 시간이 좀 걸림)
             cookie_manager.delete("current_user")
-            # 세션 상태 즉시 해제
+    
+    # 2. 깃발 올리기: "방금 로그아웃했으니까 쿠키 있어도 무시해!"
+            st.session_state.logout_active = True
+    
+    # 3. 세션 상태 해제
             st.session_state.authenticated = False
             st.session_state.current_user = None
-            # 라이브러리 목록 비우기
             st.session_state.library = []
+    
             st.rerun()
 
 # --- 화면 분기 처리 ---
