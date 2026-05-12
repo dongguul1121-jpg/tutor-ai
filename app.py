@@ -238,7 +238,7 @@ elif st.session_state.page == "main":
                         st.session_state.library.append({
                             "title": title_line if title_line else "새로운 문제 해설",
                             "content": full_text,
-                            "bookmarked": False
+                            "bookmarked": False,
                             "image": image
                         })
                         st.success("✅ 라이브러리에 저장이 완료되었습니다!")
