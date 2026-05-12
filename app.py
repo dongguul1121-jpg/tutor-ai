@@ -161,9 +161,9 @@ if st.button("로그인", key="login_btn"):
             cookie_manager.set("current_user", user_id, max_age=30*24*60*60)
         
         st.rerun()
-        else:
-            st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
-    st.stop()
+    else:
+        st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
+st.stop()
 
 # 3. 우측 상단 메뉴 & 로그아웃 기능 (방문증 파기 기능 추가)
 if "page" not in st.session_state:
