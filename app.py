@@ -417,7 +417,7 @@ if st.session_state.page == "library":
 
                 col1, col2 = st.columns(2)
                 with col1:
-                    btn_label = "⭐ 해제" if item["bookmarked"] else "☆ 설정"
+                    btn_label = "⭐ 즐겨찾기 해제" if item["bookmarked"] else "☆ 즐겨찾기 설정"
                     if st.button(btn_label, key=f"bookmark_{i}"):
                         new_status = not item["bookmarked"]
                         if "id" in item:
