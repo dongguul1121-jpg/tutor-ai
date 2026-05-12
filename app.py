@@ -207,7 +207,6 @@ st.info(f"환영합니다, {st.session_state.current_user}님! 오늘도 논리 
 # 파일 업로드 버튼
 uploaded_file = st.file_uploader("수능 영어 문제 사진을 업로드하세요", type=["jpg", "jpeg", "png"])
 
-# 👇👇 중복된 코드를 다 지우고 이 코드로 하나만 깔끔하게 붙여넣으세요 👇👇
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
@@ -216,13 +215,13 @@ if uploaded_file is not None:
     if st.button("동국 튜터식 해설 보기"):
         with st.spinner("지문을 분석하고 있습니다..."):
             try:
-                # AI 분석 실행
+                # 1. AI 분석 실행
                 response = model.generate_content([system_prompt, image])
                 
-                # ⭐️ 핵심 1: 생성된 해설을 단기 기억 장소에 저장 (화면을 이동해도 안 날아가게)
+                # 2. 메인 화면 유지를 위해 단기 기억에 저장
                 st.session_state.current_explanation = response.text
                 
-                # ⭐️ 핵심 2: 라이브러리 자동 저장 로직
+                # 3. 라이브러리 자동 저장 로직 (버튼 안쪽에 안전하게 위치!)
                 full_text = response.text
                 title_line = full_text.split('\n')[0].replace("0. [유형 및 주제]: ", "").strip()
                 
@@ -237,7 +236,7 @@ if uploaded_file is not None:
             except Exception as e:
                 st.error(f"오류가 발생했습니다: {e}")
 
-# ⭐️ 핵심 3: 버튼 클릭 여부와 상관없이, 기억 장소에 해설이 남아있다면 항상 화면에 띄워줍니다!
+# 4. 버튼 클릭 블록 바깥 (항상 해설을 띄워주는 역할)
 if st.session_state.current_explanation:
     st.subheader("💡 동국 튜터의 명쾌한 해설")
     st.write(st.session_state.current_explanation)
