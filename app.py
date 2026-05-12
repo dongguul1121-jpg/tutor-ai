@@ -46,16 +46,27 @@ system_prompt = f"""
 [동국 튜터 독해 비법 끝]
 
 # Output Format
-0. [유형 및 주제]: (반드시 이 형식으로 첫 줄 작성)
+[유형 및 주제]: (반드시 이 형식으로 첫 줄 작성)
 ### 1. 📖 전체 해석
+- 지문 전체 내용을 매끄러운 우리말로 먼저 보여줘서 맥락을 잡게 해.
+
 ### 2. 🧠 문제 풀이 방법 (동국 튜터식 사고 흐름)
+- 지문의 첫 문장부터 마지막 문장까지, 실전에서 학생이 해야 하는 '생각'을 순서대로 기술해.
+- **[문장 1]**: 이 문장에서 잡아야 할 핵심 소재와 속성(+)은 무엇인지, 이때 쓰인 '구문 도구'(예: 도치, 강조구문, 관계사 등)를 언급하며 뼈대를 발라내.
+- **[문장 2]**: 앞 문장과 어떤 관계(등식, 대조, 환언)로 연결되는지, 논리적 연결 고리를 짚어줘.
+- 이 과정을 마지막 문장까지 반복하며, 중간에 등장하는 '타겟 시그널'이 사고방식을 어떻게 바꾸는지 설명해.
+- **[최종 정답 도출]**: 위 사고 과정을 통해 정답 선지가 나올 수밖에 없는 이유와 매력적 오답의 제거 원리를 한 줄로 정리해.
+
 ### 3. 🔑 주요 포인트 & 구문 독해 도구
+- 지문에서 반드시 챙겨야 할 1순위 핵심 어휘 3~5개.
+- 지문 내에서 가장 구조가 복잡했던 문장을 하나 선정해, 구문 도구를 활용한 '구조 분석 가이드'를 제공해.
+
 """
 
 # ==========================================
 # 3. 디자인 및 자동 로그인 (쿠키 사용)
 # ==========================================
-st.set_page_config(page_title="동국 튜터 AI", page_icon="🎓")
+st.set_page_config(page_title="수능 영어 AI", page_icon="🎓")
 
 st.markdown("""
     <style>
@@ -96,7 +107,7 @@ m1, m2 = st.columns([15, 1])
 with m2:
     with st.popover("⋮"):
         if st.button("🏠 메인"): st.session_state.page = "main"; st.rerun()
-        if st.button("📚 서재"): st.session_state.page = "library"; st.rerun()
+        if st.button("📚 라이브러리"): st.session_state.page = "library"; st.rerun()
         if st.button("🚪 로그아웃"): 
             cookie_manager.delete("current_user")
             st.session_state.authenticated = False
@@ -122,7 +133,7 @@ if "library" not in st.session_state or not st.session_state.library:
 
 # 📚 [라이브러리 화면]
 if st.session_state.page == "library":
-    st.title("📚 나의 문제 서재")
+    st.title("📚 나의 문제 라이브러리")
     if not st.session_state.library:
         st.info("저장된 문제가 없습니다. 메인에서 문제를 풀어보세요!")
     else:
@@ -150,7 +161,7 @@ if st.session_state.page == "library":
 
 # 🏠 [메인 화면]
 elif st.session_state.page == "main":
-    st.title("🎓 동국 튜터 AI")
+    st.title("🎓 수능 영어 AI")
     up_file = st.file_uploader("수능 영어 문제 사진을 올려주세요.", type=["jpg", "png", "jpeg"])
     
     if up_file:
@@ -162,13 +173,13 @@ elif st.session_state.page == "main":
         st.image(st.session_state.current_image, caption="업로드된 문제", use_container_width=True)
         
         if st.session_state.current_explanation is None:
-            if st.button("동국 튜터의 해설 보기"):
+            if st.button("해설 보기"):
                 with st.spinner("AI가 지문을 분석하고 사진을 압축 저장하는 중입니다..."):
                     try:
                         # 1. AI 분석
                         res = model.generate_content([system_prompt, st.session_state.current_image])
                         st.session_state.current_explanation = res.text
-                        title = res.text.split('\n')[0].replace("0. [유형 및 주제]: ", "").strip()
+                        title = res.text.split('\n')[0].replace("[유형 및 주제]: ", "").strip()
                         
                         # ⭐️ 2. 사진 압축 & Base64 변환 (Firestore 저장용)
                         img_small = st.session_state.current_image.copy()
@@ -197,5 +208,5 @@ elif st.session_state.page == "main":
 
     if st.session_state.current_explanation:
         st.divider()
-        st.subheader("💡 동국 튜터의 명쾌한 해설")
+        st.subheader("💡 해설 보기")
         st.write(st.session_state.current_explanation)
