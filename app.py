@@ -310,6 +310,31 @@ if not st.session_state.authenticated:
 
 # 3. 우측 상단 메뉴 & 로그아웃 기능 (방문증 파기 기능 추가)
 
+if "page" not in st.session_state:
+
+    st.session_state.page = "main"
+
+if "library" not in st.session_state:
+    st.session_state.library = []
+    # ⭐️ 창고(DB)에서 내 문제들을 꺼내오는 코드!
+    if st.session_state.get("current_user"):
+        # 내 아이디("user") 꼬리표가 붙은 문제들만 'library' 폴더에서 싹 다 가져옵니다.
+        docs = db.collection("library").where("user", "==", st.session_state.current_user).stream()
+        for doc in docs:
+            item = doc.to_dict()
+            item["id"] = doc.id # DB에서 발급받은 고유 번호표를 붙여줍니다 (나중에 삭제할 때 필요)
+            st.session_state.library.append(item)
+
+if "current_explanation" not in st.session_state:
+
+    st.session_state.current_explanation = None
+
+
+
+if "current_image" not in st.session_state:
+
+    st.session_state.current_image = None
+
 
 
 
@@ -343,32 +368,6 @@ with menu_col2:
 
 
 # 2. 세션 상태 초기화
-
-if "page" not in st.session_state:
-
-    st.session_state.page = "main"
-
-if "library" not in st.session_state:
-    st.session_state.library = []
-    # ⭐️ 창고(DB)에서 내 문제들을 꺼내오는 코드!
-    if st.session_state.get("current_user"):
-        # 내 아이디("user") 꼬리표가 붙은 문제들만 'library' 폴더에서 싹 다 가져옵니다.
-        docs = db.collection("library").where("user", "==", st.session_state.current_user).stream()
-        for doc in docs:
-            item = doc.to_dict()
-            item["id"] = doc.id # DB에서 발급받은 고유 번호표를 붙여줍니다 (나중에 삭제할 때 필요)
-            st.session_state.library.append(item)
-
-if "current_explanation" not in st.session_state:
-
-    st.session_state.current_explanation = None
-
-
-
-if "current_image" not in st.session_state:
-
-    st.session_state.current_image = None
-
 
 
 # --- 화면 분기 처리 ---
