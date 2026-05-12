@@ -196,6 +196,9 @@ if st.session_state.page == "library":
         for i, item in enumerate(sorted_lib):
             star = "⭐️" if item["bookmarked"] else "☆"
             with st.expander(f"{star} {item['title']}"):
+                if "image" in item and item["image"] is not None:
+                    st.image(item["image"], caption="업로드했던 문제", use_column_width=True)
+                    st.divider() # 사진과 해설 사이에 얇은 선을 하나 그어줍니다.
                 st.write(item["content"])
                 col1, col2 = st.columns(2)
                 
@@ -236,6 +239,7 @@ elif st.session_state.page == "main":
                             "title": title_line if title_line else "새로운 문제 해설",
                             "content": full_text,
                             "bookmarked": False
+                            "image": image
                         })
                         st.success("✅ 라이브러리에 저장이 완료되었습니다!")
                         
