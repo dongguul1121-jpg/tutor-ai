@@ -250,12 +250,4 @@ if st.session_state.current_explanation:
 
                 # 중복 저장을 방지하기 위해 현재 세션에 이미 저장되었는지 확인 후 추가
               
-if not any(item['content'] == full_text for item in st.session_state.library):             
-    st.session_state.library.append({                  
-        "title": title_line if title_line else "새로운 문제 해설",                   
-        "content": full_text,                   
-        "bookmarked": False              
-    })                 
-    st.success("✅ 라이브러리에 저장이 완료되었습니다!")           
-except Exception as e:            
-st.error(f"오류가 발생했습니다: {e}")
+
