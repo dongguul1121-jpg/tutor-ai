@@ -419,7 +419,7 @@ if st.session_state.page == "library":
                         
                 with col2:
                     # 삭제 버튼은 이제 상자의 가장 우측 끝 칸에 안착합니다!
-                    if st.button("🗑️", key=f"del_{i}", use_container_width=True):
+                    if st.button("🗑️ 삭제", key=f"del_{i}", use_container_width=True):
                         db.collection("library").document(item["id"]).delete()
                         st.session_state.library = [e for e in st.session_state.library if e["id"] != item["id"]]
                         st.rerun()
