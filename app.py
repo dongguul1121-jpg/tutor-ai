@@ -244,9 +244,6 @@ if st.session_state.current_explanation:
 # 👆👆 여기까지입니다 👆👆
                 # [자동 저장 로직]
                 # AI 답변의 첫 줄(제목)을 가져와서 라이브러리에 저장합니다.
-    full_text = response.text               
-    title_line = full_text.split('\n')[0].replace("0. [유형 및 주제]: ", "").strip()
 
-                # 중복 저장을 방지하기 위해 현재 세션에 이미 저장되었는지 확인 후 추가
               
 
