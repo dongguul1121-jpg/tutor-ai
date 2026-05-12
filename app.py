@@ -115,47 +115,89 @@ st.markdown(hide_menu_style, unsafe_allow_html=True)
 
 # 👇👇 [자동 로그인 시스템 적용] 👇👇
 
-# 1. 쿠키 매니저 준비 (key는 고정되어야 합니다)
-cookie_manager = stx.CookieManager(key="dongguk_cookie_manager")
-time.sleep(0.2) # 쿠키를 읽어올 수 있도록 아주 잠깐만 기다려줍니다.
-saved_user = cookie_manager.get(cookie="current_user")
+# ==========================================
+# 1. 초기 설정 및 세션 상태 정의
+# ==========================================
+# (기본 import 및 파이어베이스 설정은 그대로 두세요)
 
-# --- 상단 로그인 체크 구역 ---
-# 1. 세션 상태 초기화 (메뉴보다 위에 있어야 함)
-if "logout_active" not in st.session_state:
-    st.session_state.logout_active = False
-
+# 세션 상태 초기화 (제일 먼저 실행되어야 함)
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
+if "current_user" not in st.session_state:
+    st.session_state.current_user = None
+if "logout_active" not in st.session_state:
+    st.session_state.logout_active = False
+if "page" not in st.session_state:
+    st.session_state.page = "main"
+if "library" not in st.session_state:
+    st.session_state.library = []
 
-# 2. 자동로그인 시도 (로그아웃 깃발이 없을 때만)
+# ==========================================
+# 2. 쿠키 읽기 및 자동로그인 로직 (핵심)
+# ==========================================
+cookie_manager = stx.CookieManager(key="dongguk_cookie_manager_v2") # 키를 살짝 바꿔서 초기화 유도
+
+# 쿠키를 읽어올 수 있도록 아주 짧게 대기
+time.sleep(0.2)
+saved_user = cookie_manager.get(cookie="current_user")
+
+# ⭐️ 자동로그인 핵심 로직
+# 아직 로그인이 안 된 상태인데, 쿠키(방문증)가 있고 + 방금 로그아웃 버튼을 누른 게 아니라면!
 if not st.session_state.authenticated and saved_user and not st.session_state.logout_active:
     st.session_state.authenticated = True
     st.session_state.current_user = saved_user
-    st.rerun()
+    
+    # 로그인 성공했으니 DB에서 라이브러리 데이터를 즉시 새로고침
+    st.session_state.library = []
+    docs = db.collection("library").where("user", "==", saved_user).stream()
+    for doc in docs:
+        item = doc.to_dict()
+        item["id"] = doc.id
+        st.session_state.library.append(item)
+    
+    st.rerun() # 모든 준비가 끝났으니 화면을 새로고침해서 메인으로 진입!
 
-# 3. 로그인 화면 (로그인이 안 된 경우)
+# ==========================================
+# 3. 로그인 창 (로그인 안 된 경우)
+# ==========================================
 if not st.session_state.authenticated:
     st.title("🔒 동국 튜터 AI 로그인")
     user_id = st.text_input("아이디 (ID)")
     user_pw = st.text_input("비밀번호 (Password)", type="password")
     auto_login = st.checkbox("자동 로그인 (30일 유지)", value=True)
     
-    if st.button("로그인", key="login_main_btn"):
-        # ✅ 여기서부터 줄 맞춤이 핵심입니다!
+    if st.button("로그인", key="login_btn"):
         if user_id in st.secrets["users"] and st.secrets["users"][user_id] == user_pw:
             st.session_state.authenticated = True
             st.session_state.current_user = user_id
-            st.session_state.logout_active = False # 다시 로그인했으니 깃발 내림
+            st.session_state.logout_active = False # 로그아웃 상태 해제
             
             if auto_login:
                 cookie_manager.set("current_user", user_id, max_age=30*24*60*60)
             
-            st.rerun()
-        else: # ⭐️ 바로 이 else가 위쪽의 'if user_id in...' 과 수직으로 딱 맞아야 합니다!
-            st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
+            # DB 데이터 로드
+            st.session_state.library = []
+            docs = db.collection("library").where("user", "==", user_id).stream()
+            for doc in docs:
+                item = doc.to_dict(); item["id"] = doc.id
+                st.session_state.library.append(item)
             
-    st.stop() # 로그인 안 됐으면 여기서 코드 실행 중단
+            st.rerun()
+        else:
+            st.error("❌ 정보를 확인해주세요.")
+    st.stop() # 로그인 전까지는 아래 코드를 실행하지 않음
+
+# ==========================================
+# 4. 로그아웃 버튼 (메뉴 부분)
+# ==========================================
+# ... (중략: 메뉴 popover 코드 안의 로그아웃 버튼) ...
+if st.button("🚪 로그아웃", key="btn_logout", use_container_width=True):
+    cookie_manager.delete("current_user") # 쿠키 파기
+    st.session_state.logout_active = True # 로그아웃 깃발 올림
+    st.session_state.authenticated = False
+    st.session_state.current_user = None
+    st.session_state.library = []
+    st.rerun()
 
 # 3. 우측 상단 메뉴 & 로그아웃 기능 (방문증 파기 기능 추가)
 if "page" not in st.session_state:
@@ -192,17 +234,11 @@ with menu_col2:
         # ⭐️ 에러가 났던 로그아웃 버튼 구역입니다.
         # --- 로그아웃 버튼 구역 ---
         if st.button("🚪 로그아웃", key="btn_logout", use_container_width=True):
-    # 1. 브라우저에게 쿠키 삭제 명령 (실제 삭제까지 시간이 좀 걸림)
-            cookie_manager.delete("current_user")
-    
-    # 2. 깃발 올리기: "방금 로그아웃했으니까 쿠키 있어도 무시해!"
-            st.session_state.logout_active = True
-    
-    # 3. 세션 상태 해제
+            cookie_manager.delete("current_user") # 쿠키 파기
+            st.session_state.logout_active = True # 로그아웃 깃발 올림
             st.session_state.authenticated = False
             st.session_state.current_user = None
             st.session_state.library = []
-    
             st.rerun()
 
 # --- 화면 분기 처리 ---
