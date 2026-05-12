@@ -183,6 +183,9 @@ if "library" not in st.session_state:
 if "current_explanation" not in st.session_state:
     st.session_state.current_explanation = None
 
+if "current_image" not in st.session_state:
+    st.session_state.current_image = None
+
 # --- 화면 분기 처리 ---
 
 # 📚 라이브러리 화면
@@ -214,51 +217,58 @@ if st.session_state.page == "library":
                         del st.session_state.library[item_index]
                         st.rerun()
 
-# 🏠 메인 화면 (핵심: elif로 묶어서 라이브러리 화면일 때는 실행되지 않게 함)
+# 👇👇 여기서부터 복사해서 맨 아래까지 덮어쓰세요 👇👇
+
 elif st.session_state.page == "main":
     st.title("🎓 동국 튜터 수능 영어 AI")
     st.info(f"환영합니다, {st.session_state.current_user}님! 오늘도 논리 독해로 뼈대를 발라봅시다.")
 
-    # ⭐️ [추가] 파일 변경 감지용 변수 초기화
     if "last_uploaded_file_name" not in st.session_state:
         st.session_state.last_uploaded_file_name = None
 
     uploaded_file = st.file_uploader("수능 영어 문제 사진을 업로드하세요", type=["jpg", "jpeg", "png"])
 
-    # ⭐️ [핵심 로직] 새로운 파일이 올라오면 이전 해설을 지웁니다.
+    # ⭐️ 1. 새 파일이 올라오면 '사진'과 '파일이름'을 단기 기억에 저장!
     if uploaded_file is not None:
         if st.session_state.last_uploaded_file_name != uploaded_file.name:
-            st.session_state.current_explanation = None # 이전 해설 초기화
-            st.session_state.last_uploaded_file_name = uploaded_file.name # 파일명 업데이트
+            st.session_state.current_explanation = None # 이전 해설 싹 지우기
+            st.session_state.last_uploaded_file_name = uploaded_file.name
+            st.session_state.current_image = Image.open(uploaded_file) # 새 사진 저장!
 
-        image = Image.open(uploaded_file)
-        st.image(image, caption="업로드된 문제", use_column_width=True)
+    # ⭐️ 2. 기억 장소에 사진이 있다면 무조건 화면에 띄웁니다! (갔다 와도 유지됨)
+    if st.session_state.current_image is not None:
+        st.image(st.session_state.current_image, caption="업로드된 문제", use_column_width=True)
         
-        if st.button("동국 튜터식 해설 보기"):
-            with st.spinner("지문을 분석하고 있습니다..."):
-                try:
-                    response = model.generate_content([system_prompt, image])
-                    st.session_state.current_explanation = response.text
-                    
-                    full_text = response.text
-                    title_line = full_text.split('\n')[0].replace("0. [유형 및 주제]: ", "").strip()
-                    
-                    if not any(item['content'] == full_text for item in st.session_state.library):
-                        st.session_state.library.append({
-                            "title": title_line if title_line else "새로운 문제 해설",
-                            "content": full_text,
-                            "bookmarked": False,
-                            "image": image
-                        })
-                        st.success("✅ 라이브러리에 저장이 완료되었습니다!")
+        # ⭐️ 3. 사진은 있는데 '해설'이 아직 없을 때만 버튼을 보여줍니다!
+        if st.session_state.current_explanation is None:
+            if st.button("동국 튜터식 해설 보기"):
+                with st.spinner("지문을 분석하고 있습니다..."):
+                    try:
+                        # 방금 기억한 사진(current_image)으로 AI 분석 실행!
+                        response = model.generate_content([system_prompt, st.session_state.current_image])
+                        st.session_state.current_explanation = response.text
                         
-                except Exception as e:
-                    st.error(f"오류가 발생했습니다: {e}")
+                        full_text = response.text
+                        title_line = full_text.split('\n')[0].replace("0. [유형 및 주제]: ", "").strip()
+                        
+                        if not any(item['content'] == full_text for item in st.session_state.library):
+                            st.session_state.library.append({
+                                "title": title_line if title_line else "새로운 문제 해설",
+                                "content": full_text,
+                                "bookmarked": False,
+                                "image": st.session_state.current_image # 라이브러리에도 사진 저장!
+                            })
+                            st.success("✅ 라이브러리에 저장이 완료되었습니다!")
+                            
+                    except Exception as e:
+                        st.error(f"오류가 발생했습니다: {e}")
 
-    # 기억 장소에 해설이 있다면 메인 화면에서 항상 노출
+    # 4. 기억 장소에 해설이 있다면 항상 화면에 띄워줍니다!
     if st.session_state.current_explanation:
         st.subheader("💡 동국 튜터의 명쾌한 해설")
         st.write(st.session_state.current_explanation)
+
+# 👆👆 여기까지입니다 👆👆
 
               
 
