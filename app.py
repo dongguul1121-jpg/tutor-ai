@@ -416,31 +416,22 @@ if st.session_state.page == "library":
                 st.write(item["content"])
 
                 col1, col2 = st.columns(2)
-
-                
-
                 with col1:
-                    btn_label = "⭐ 즐겨찾기 해제" if item["bookmarked"] else "☆ 즐겨찾기 설정"
-                     if st.button(btn_label, key=f"bookmark_{i}"):
-                        item_index = st.session_state.library.index(item)
-                         new_status = not item["bookmarked"]
-                          st.session_state.library[item_index]["bookmarked"] = new_status
-                        
-                        # ⭐️ DB 창고에 있는 서류도 꺼내서 즐겨찾기 상태를 수정합니다!
-                         if "id" in item:
-                             db.collection("library").document(item["id"]).update({"bookmarked": new_status})
+                    btn_label = "⭐ 해제" if item["bookmarked"] else "☆ 설정"
+                    if st.button(btn_label, key=f"bookmark_{i}"):
+                        new_status = not item["bookmarked"]
+                        if "id" in item:
+                            db.collection("library").document(item["id"]).update({"bookmarked": new_status})
+                        for entry in st.session_state.library:
+                            if entry["id"] == item["id"]:
+                                entry["bookmarked"] = new_status
                         st.rerun()
-                        
                 with col2:
                     if st.button("🗑️ 삭제", key=f"del_{i}"):
-                        item_index = st.session_state.library.index(item)
-                        
-                        # ⭐️ DB 창고에서도 이 문제를 완전히 불태워 없앱니다!
                         if "id" in item:
                             db.collection("library").document(item["id"]).delete()
-                        del st.session_state.library[item_index]
+                        st.session_state.library = [e for e in st.session_state.library if e["id"] != item["id"]]
                         st.rerun()
-
 # 👇👇 여기서부터 복사해서 맨 아래까지 덮어쓰세요 👇👇
 
 
