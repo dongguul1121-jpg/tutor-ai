@@ -191,7 +191,7 @@ if not st.session_state.authenticated:
 # 4. 로그아웃 버튼 (메뉴 부분)
 # ==========================================
 # ... (중략: 메뉴 popover 코드 안의 로그아웃 버튼) ...
-if st.button("🚪 로그아웃", key="btn_logout", use_container_width=True):
+if st.button("🚪 로그아웃", key=f"btn_logout_{st.session_state.page}", use_container_width=True):
     cookie_manager.delete("current_user") # 쿠키 파기
     st.session_state.logout_active = True # 로그아웃 깃발 올림
     st.session_state.authenticated = False
