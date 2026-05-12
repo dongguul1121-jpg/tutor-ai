@@ -318,36 +318,26 @@ if not st.session_state.authenticated:
 
 menu_col1, menu_col2 = st.columns([15, 1])
 
+# 1. 상단 메뉴 (페이지에 상관없이 항상 노출)
+menu_col1, menu_col2 = st.columns([15, 1])
 with menu_col2:
-
-    with st.popover("⋮"):
-
-        if st.button("🏠 메인 화면", use_container_width=True):
-
+    # ⭐️ 핵심: key에 현재 페이지 이름을 넣으면, 페이지가 바뀔 때 메뉴 버튼도 새것으로 교체됩니다!
+    with st.popover("⋮", key=f"nav_popover_{st.session_state.page}"):
+        if st.button("🏠 메인 화면", key="btn_go_main", use_container_width=True):
             st.session_state.page = "main"
-
             st.rerun()
-
-        if st.button("📚 라이브러리", use_container_width=True):
-
+            
+        if st.button("📚 라이브러리", key="btn_go_lib", use_container_width=True):
             st.session_state.page = "library"
-
             st.rerun()
-
-        if st.button("🚪 로그아웃", use_container_width=True):
-
+            
+        if st.button("🚪 로그아웃", key="btn_logout", use_container_width=True):
             try:
-
                 cookie_manager.delete("current_user")
-
-            except KeyError:
-
+            except Exception:
                 pass 
-
             st.session_state.authenticated = False
-
             st.session_state.current_user = None
-
             st.rerun()
 
 
