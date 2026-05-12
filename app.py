@@ -419,16 +419,16 @@ if st.session_state.page == "library":
 
                 
 
-              with col1:
+                with col1:
                     btn_label = "⭐ 즐겨찾기 해제" if item["bookmarked"] else "☆ 즐겨찾기 설정"
-                    if st.button(btn_label, key=f"bookmark_{i}"):
+                     if st.button(btn_label, key=f"bookmark_{i}"):
                         item_index = st.session_state.library.index(item)
-                        new_status = not item["bookmarked"]
-                        st.session_state.library[item_index]["bookmarked"] = new_status
+                         new_status = not item["bookmarked"]
+                          st.session_state.library[item_index]["bookmarked"] = new_status
                         
                         # ⭐️ DB 창고에 있는 서류도 꺼내서 즐겨찾기 상태를 수정합니다!
-                        if "id" in item:
-                            db.collection("library").document(item["id"]).update({"bookmarked": new_status})
+                         if "id" in item:
+                             db.collection("library").document(item["id"]).update({"bookmarked": new_status})
                         st.rerun()
                         
                 with col2:
