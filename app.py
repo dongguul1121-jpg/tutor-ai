@@ -141,20 +141,53 @@ if not st.session_state.authenticated:
 menu_col1, menu_col2 = st.columns([15, 1])
 with menu_col2:
     with st.popover("⋮"):
+        # 1. 메인 화면으로 가기 버튼
+        if st.button("🏠 메인 화면", use_container_width=True):
+            st.session_state.page = "main"
+            st.rerun()
+            
+        # 2. 라이브러리로 가기 버튼
+        if st.button("📚 라이브러리", use_container_width=True):
+            st.session_state.page = "library"
+            st.rerun()
+            
+        # 3. 로그아웃 버튼 (기존과 동일)
         if st.button("🚪 로그아웃", use_container_width=True):
-            # 1. 에러 방어막: 방문증(쿠키)이 있을 때만 삭제하고, 없으면 조용히 넘어감
             try:
                 cookie_manager.delete("current_user")
             except KeyError:
                 pass 
-            
-            # 2. 내 앱의 로그인 상태 해제
             st.session_state.authenticated = False
             st.session_state.current_user = None
-            
-            # 3. 에러 없이 즉시 새로고침
             st.rerun()
+            
+if "page" not in st.session_state:
+    st.session_state.page = "main" # 처음엔 메인 화면으로 시작
+if "library" not in st.session_state:
+    st.session_state.library = []  # 과거 문제들을 담을 빈 리스트            
 
+if st.session_state.page == "library":
+    st.title("📚 나의 문제 라이브러리")
+    
+    if len(st.session_state.library) == 0:
+        st.info("아직 저장된 문제가 없습니다. 메인 화면에서 문제를 풀어보세요!")
+    else:
+        sorted_lib = sorted(st.session_state.library, key=lambda x: x["bookmarked"], reverse=True)
+        for i, item in enumerate(sorted_lib):
+            star = "⭐️" if item["bookmarked"] else "☆"
+            with st.expander(f"{star} {item['title']}"):
+                st.write(item["content"])
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("즐겨찾기 변경", key=f"bookmark_{i}"):
+                        item_index = st.session_state.library.index(item)
+                        st.session_state.library[item_index]["bookmarked"] = not item["bookmarked"]
+                        st.rerun()
+                with col2:
+                    if st.button("🗑️ 삭제", key=f"del_{i}"):
+                        item_index = st.session_state.library.index(item)
+                        del st.session_state.library[item_index]
+                        st.rerun()
 
 
 
