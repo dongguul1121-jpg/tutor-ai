@@ -115,21 +115,28 @@ st.markdown(hide_menu_style, unsafe_allow_html=True)
 
 # 👇👇 [자동 로그인 시스템 적용] 👇👇
 
+# 1. 쿠키 매니저 준비 (key는 고정되어야 합니다)
 cookie_manager = stx.CookieManager(key="dongguk_cookie_manager")
-time.sleep(0.1)
+time.sleep(0.2) # 쿠키를 읽어올 수 있도록 아주 잠깐만 기다려줍니다.
 saved_user = cookie_manager.get(cookie="current_user")
 
-# 2. 방문증이 있으면 자동 통과, 없으면 로그인 창 띄우기
+# 2. 로그인 상태 결정 로직 (수정된 부분)
 if "authenticated" not in st.session_state:
-    if saved_user:
-        st.session_state.authenticated = True
-        st.session_state.current_user = saved_user
-    else:
-        st.session_state.authenticated = False
+    # 아직 상태가 결정되지 않았다면 우선 False로 시작
+    st.session_state.authenticated = False
 
-# (이전 쿠키 불러오는 코드는 그대로 유지)
+# ⭐️ 핵심: 로그인이 안 된 상태인데, 쿠키(방문증)가 뒤늦게 발견되었다면?
+if not st.session_state.authenticated and saved_user:
+    st.session_state.authenticated = True
+    st.session_state.current_user = saved_user
+    st.rerun() # 쿠키를 찾았으니 즉시 화면을 새로고침해서 로그인 시킵니다!
+
+# 3. 로그인 창 출력 (로그인이 안 되었을 때만)
 if not st.session_state.authenticated:
     st.title("🔒 동국 튜터 AI 로그인")
+    # ... (아이디/비번 입력창 및 로그인 버튼 코드들) ...
+    # (기존 로그인 버튼 안의 cookie_manager.set 코드도 그대로 유지하세요!)
+    st.stop()
     st.markdown("수강생 전용 공간입니다. 발급받은 아이디와 비밀번호를 입력하세요.")
     user_id = st.text_input("아이디 (ID)")
     user_pw = st.text_input("비밀번호 (Password)", type="password")
