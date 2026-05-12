@@ -359,8 +359,15 @@ if "page" not in st.session_state:
     st.session_state.page = "main"
 
 if "library" not in st.session_state:
-
     st.session_state.library = []
+    # ⭐️ 창고(DB)에서 내 문제들을 꺼내오는 코드!
+    if st.session_state.get("current_user"):
+        # 내 아이디("user") 꼬리표가 붙은 문제들만 'library' 폴더에서 싹 다 가져옵니다.
+        docs = db.collection("library").where("user", "==", st.session_state.current_user).stream()
+        for doc in docs:
+            item = doc.to_dict()
+            item["id"] = doc.id # DB에서 발급받은 고유 번호표를 붙여줍니다 (나중에 삭제할 때 필요)
+            st.session_state.library.append(item)
 
 if "current_explanation" not in st.session_state:
 
@@ -412,29 +419,27 @@ if st.session_state.page == "library":
 
                 
 
-                with col1:
-
+              with col1:
                     btn_label = "⭐ 즐겨찾기 해제" if item["bookmarked"] else "☆ 즐겨찾기 설정"
-
                     if st.button(btn_label, key=f"bookmark_{i}"):
-
                         item_index = st.session_state.library.index(item)
-
-                        st.session_state.library[item_index]["bookmarked"] = not item["bookmarked"]
-
+                        new_status = not item["bookmarked"]
+                        st.session_state.library[item_index]["bookmarked"] = new_status
+                        
+                        # ⭐️ DB 창고에 있는 서류도 꺼내서 즐겨찾기 상태를 수정합니다!
+                        if "id" in item:
+                            db.collection("library").document(item["id"]).update({"bookmarked": new_status})
                         st.rerun()
-
+                        
                 with col2:
-
                     if st.button("🗑️ 삭제", key=f"del_{i}"):
-
                         item_index = st.session_state.library.index(item)
-
+                        
+                        # ⭐️ DB 창고에서도 이 문제를 완전히 불태워 없앱니다!
+                        if "id" in item:
+                            db.collection("library").document(item["id"]).delete()
                         del st.session_state.library[item_index]
-
                         st.rerun()
-
-
 
 # 👇👇 여기서부터 복사해서 맨 아래까지 덮어쓰세요 👇👇
 
@@ -504,21 +509,28 @@ elif st.session_state.page == "main":
 
                         
 
+                       # ... (위쪽 title_line = ... 코드는 그대로 둡니다) ...
+                        
                         if not any(item['content'] == full_text for item in st.session_state.library):
-
-                            st.session_state.library.append({
-
+                            
+                            # ⭐️ 1. DB 창고에 저장할 데이터 상자를 만듭니다.
+                            new_doc_ref = db.collection("library").document() # 새 문서(방) 열기
+                            db_item = {
+                                "id": new_doc_ref.id,
+                                "user": st.session_state.current_user, # 누구의 문제인지 아이디 꼬리표 달기
                                 "title": title_line if title_line else "새로운 문제 해설",
-
                                 "content": full_text,
-
-                                "bookmarked": False,
-
-                                "image": st.session_state.current_image # 라이브러리에도 사진 저장!
-
-                            })
-
-                            st.success("✅ 라이브러리에 저장이 완료되었습니다!")
+                                "bookmarked": False
+                            }
+                            # DB 창고에 진짜로 던져 넣기!
+                            new_doc_ref.set(db_item)
+                            
+                            # ⭐️ 2. 방금 푼 문제를 지금 당장 화면에 띄우기 위해 (사진 포함해서) 단기 기억에도 넣습니다.
+                            ui_item = db_item.copy()
+                            ui_item["image"] = st.session_state.current_image
+                            st.session_state.library.append(ui_item)
+                            
+                            st.success("✅ 라이브러리에 영구 저장이 완료되었습니다!")
 
                             
 
