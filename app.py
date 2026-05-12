@@ -1,11 +1,23 @@
 import streamlit as st
 import google.generativeai as genai
-
 import extra_streamlit_components as stx
 import time
-
 from PIL import Image
-import os
+
+# 👇👇 이 3줄을 추가로 적어줍니다 👇👇
+import json
+import firebase_admin
+from firebase_admin import credentials, firestore
+
+# 👇👇 Firebase 연결 코드 (앱이 켜질 때 한 번만 실행됨) 👇👇
+if not firebase_admin._apps:
+    # 스트림릿 금고에서 JSON 열쇠 꾸러미를 꺼내옵니다.
+    key_dict = json.loads(st.secrets["FIREBASE_JSON"])
+    cred = credentials.Certificate(key_dict)
+    firebase_admin.initialize_app(cred)
+
+# 이제 db 변수를 통해 파이어베이스 창고에 마음대로 접근할 수 있습니다!
+db = firestore.client()
 
 # 1. Gemini API 키 설정 (본인의 키로 변경하세요)
 # 서버의 안전한 금고(secrets)에서 키를 꺼내오도록 수정
