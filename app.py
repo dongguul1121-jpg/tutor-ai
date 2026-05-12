@@ -34,7 +34,7 @@ system_prompt = f"""
 [동국 튜터 독해 비법 끝]
 
 # Output Format (반드시 아래 순서를 지킬 것)
-0. [유형 및 주제]: (예: [빈칸 추론] 기후 변화의 역설) - 반드시 이 형식으로 첫 줄에 작성해줘.
+[유형 및 주제]: (예: [빈칸 추론] 기후 변화의 역설) - 반드시 이 형식으로 첫 줄에 작성해줘.
 
 ### 1. 📖 전체 해석
 - 지문 전체 내용을 매끄러운 우리말로 먼저 보여줘서 맥락을 잡게 해.
@@ -165,7 +165,9 @@ with menu_col2:
 if "page" not in st.session_state:
     st.session_state.page = "main" # 처음엔 메인 화면으로 시작
 if "library" not in st.session_state:
-    st.session_state.library = []  # 과거 문제들을 담을 빈 리스트            
+    st.session_state.library = []  # 과거 문제들을 담을 빈 리스트    
+if "current_explanation" not in st.session_state:
+    st.session_state.current_explanation = None    
 
 if st.session_state.page == "library":
     st.title("📚 나의 문제 라이브러리")
@@ -179,17 +181,20 @@ if st.session_state.page == "library":
             with st.expander(f"{star} {item['title']}"):
                 st.write(item["content"])
                 col1, col2 = st.columns(2)
+                
                 with col1:
-                    if st.button("즐겨찾기 변경", key=f"bookmark_{i}"):
+                    # ⭐️ 핵심: 즐겨찾기 상태에 따라 버튼 이름이 바뀝니다!
+                    btn_label = "⭐ 즐겨찾기 해제" if item["bookmarked"] else "☆ 즐겨찾기 설정"
+                    if st.button(btn_label, key=f"bookmark_{i}"):
                         item_index = st.session_state.library.index(item)
                         st.session_state.library[item_index]["bookmarked"] = not item["bookmarked"]
                         st.rerun()
+                        
                 with col2:
                     if st.button("🗑️ 삭제", key=f"del_{i}"):
                         item_index = st.session_state.library.index(item)
                         del st.session_state.library[item_index]
                         st.rerun()
-
 
 
 
@@ -202,6 +207,8 @@ st.info(f"환영합니다, {st.session_state.current_user}님! 오늘도 논리 
 # 파일 업로드 버튼
 uploaded_file = st.file_uploader("수능 영어 문제 사진을 업로드하세요", type=["jpg", "jpeg", "png"])
 
+# 👇👇 중복된 코드를 다 지우고 이 코드로 하나만 깔끔하게 붙여넣으세요 👇👇
+
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
     st.image(image, caption="업로드된 문제", use_column_width=True)
@@ -209,9 +216,33 @@ if uploaded_file is not None:
     if st.button("동국 튜터식 해설 보기"):
         with st.spinner("지문을 분석하고 있습니다..."):
             try:
+                # AI 분석 실행
                 response = model.generate_content([system_prompt, image])
-                st.subheader("💡 동국 튜터의 명쾌한 해설")
-                st.write(response.text)
+                
+                # ⭐️ 핵심 1: 생성된 해설을 단기 기억 장소에 저장 (화면을 이동해도 안 날아가게)
+                st.session_state.current_explanation = response.text
+                
+                # ⭐️ 핵심 2: 라이브러리 자동 저장 로직
+                full_text = response.text
+                title_line = full_text.split('\n')[0].replace("0. [유형 및 주제]: ", "").strip()
+                
+                if not any(item['content'] == full_text for item in st.session_state.library):
+                    st.session_state.library.append({
+                        "title": title_line if title_line else "새로운 문제 해설",
+                        "content": full_text,
+                        "bookmarked": False
+                    })
+                    st.success("✅ 라이브러리에 저장이 완료되었습니다!")
+                    
+            except Exception as e:
+                st.error(f"오류가 발생했습니다: {e}")
+
+# ⭐️ 핵심 3: 버튼 클릭 여부와 상관없이, 기억 장소에 해설이 남아있다면 항상 화면에 띄워줍니다!
+if st.session_state.current_explanation:
+    st.subheader("💡 동국 튜터의 명쾌한 해설")
+    st.write(st.session_state.current_explanation)
+
+# 👆👆 여기까지입니다 👆👆
                 # [자동 저장 로직]
                 # AI 답변의 첫 줄(제목)을 가져와서 라이브러리에 저장합니다.
                 full_text = response.text
