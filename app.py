@@ -34,6 +34,7 @@ system_prompt = f"""
 [동국 튜터 독해 비법 끝]
 
 # Output Format (반드시 아래 순서를 지킬 것)
+0. [유형 및 주제]: (예: [빈칸 추론] 기후 변화의 역설) - 반드시 이 형식으로 첫 줄에 작성해줘.
 
 ### 1. 📖 전체 해석
 - 지문 전체 내용을 매끄러운 우리말로 먼저 보여줘서 맥락을 잡게 해.
@@ -211,5 +212,18 @@ if uploaded_file is not None:
                 response = model.generate_content([system_prompt, image])
                 st.subheader("💡 동국 튜터의 명쾌한 해설")
                 st.write(response.text)
+                # [자동 저장 로직]
+                # AI 답변의 첫 줄(제목)을 가져와서 라이브러리에 저장합니다.
+                full_text = response.text
+                title_line = full_text.split('\n')[0].replace("0. [유형 및 주제]: ", "").strip()
+
+                # 중복 저장을 방지하기 위해 현재 세션에 이미 저장되었는지 확인 후 추가
+                if not any(item['content'] == full_text for item in st.session_state.library):
+                    st.session_state.library.append({
+                        "title": title_line if title_line else "새로운 문제 해설",
+                        "content": full_text,
+                        "bookmarked": False
+                    })
+                    st.success("✅ 라이브러리에 저장이 완료되었습니다!")
             except Exception as e:
                 st.error(f"오류가 발생했습니다: {e}")
