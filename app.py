@@ -139,20 +139,16 @@ if not st.session_state.authenticated:
 # 3. 우측 상단 메뉴 & 로그아웃 기능 (방문증 파기 기능 추가)
 
 
+# 1. 상단 메뉴 (페이지에 상관없이 항상 노출)
 menu_col1, menu_col2 = st.columns([15, 1])
 with menu_col2:
     with st.popover("⋮"):
-        # 1. 메인 화면으로 가기 버튼
         if st.button("🏠 메인 화면", use_container_width=True):
             st.session_state.page = "main"
             st.rerun()
-            
-        # 2. 라이브러리로 가기 버튼
         if st.button("📚 라이브러리", use_container_width=True):
             st.session_state.page = "library"
             st.rerun()
-            
-        # 3. 로그아웃 버튼 (기존과 동일)
         if st.button("🚪 로그아웃", use_container_width=True):
             try:
                 cookie_manager.delete("current_user")
@@ -161,14 +157,18 @@ with menu_col2:
             st.session_state.authenticated = False
             st.session_state.current_user = None
             st.rerun()
-            
-if "page" not in st.session_state:
-    st.session_state.page = "main" # 처음엔 메인 화면으로 시작
-if "library" not in st.session_state:
-    st.session_state.library = []  # 과거 문제들을 담을 빈 리스트    
-if "current_explanation" not in st.session_state:
-    st.session_state.current_explanation = None    
 
+# 2. 세션 상태 초기화
+if "page" not in st.session_state:
+    st.session_state.page = "main"
+if "library" not in st.session_state:
+    st.session_state.library = []
+if "current_explanation" not in st.session_state:
+    st.session_state.current_explanation = None
+
+# --- 화면 분기 처리 ---
+
+# 📚 라이브러리 화면
 if st.session_state.page == "library":
     st.title("📚 나의 문제 라이브러리")
     
@@ -183,67 +183,52 @@ if st.session_state.page == "library":
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    # ⭐️ 핵심: 즐겨찾기 상태에 따라 버튼 이름이 바뀝니다!
                     btn_label = "⭐ 즐겨찾기 해제" if item["bookmarked"] else "☆ 즐겨찾기 설정"
                     if st.button(btn_label, key=f"bookmark_{i}"):
                         item_index = st.session_state.library.index(item)
                         st.session_state.library[item_index]["bookmarked"] = not item["bookmarked"]
                         st.rerun()
-                        
                 with col2:
                     if st.button("🗑️ 삭제", key=f"del_{i}"):
                         item_index = st.session_state.library.index(item)
                         del st.session_state.library[item_index]
                         st.rerun()
 
+# 🏠 메인 화면 (핵심: elif로 묶어서 라이브러리 화면일 때는 실행되지 않게 함)
+elif st.session_state.page == "main":
+    st.title("🎓 동국 튜터 수능 영어 AI")
+    st.info(f"환영합니다, {st.session_state.current_user}님! 오늘도 논리 독해로 뼈대를 발라봅시다.")
 
+    uploaded_file = st.file_uploader("수능 영어 문제 사진을 업로드하세요", type=["jpg", "jpeg", "png"])
 
-# 4. 메인 화면 제목
-st.title("🎓 동국 튜터 수능 영어 AI")
-st.info(f"환영합니다, {st.session_state.current_user}님! 오늘도 논리 독해로 뼈대를 발라봅시다.")
-
-
-
-# 파일 업로드 버튼
-uploaded_file = st.file_uploader("수능 영어 문제 사진을 업로드하세요", type=["jpg", "jpeg", "png"])
-
-
-if uploaded_file is not None:
-    image = Image.open(uploaded_file)
-    st.image(image, caption="업로드된 문제", use_column_width=True)
-    
-    if st.button("동국 튜터식 해설 보기"):
-        with st.spinner("지문을 분석하고 있습니다..."):
-            try:
-                # 1. AI 분석 실행
-                response = model.generate_content([system_prompt, image])
-                
-                # 2. 메인 화면 유지를 위해 단기 기억에 저장
-                st.session_state.current_explanation = response.text
-                
-                # 3. 라이브러리 자동 저장 로직 (버튼 안쪽에 안전하게 위치!)
-                full_text = response.text
-                title_line = full_text.split('\n')[0].replace("0. [유형 및 주제]: ", "").strip()
-                
-                if not any(item['content'] == full_text for item in st.session_state.library):
-                    st.session_state.library.append({
-                        "title": title_line if title_line else "새로운 문제 해설",
-                        "content": full_text,
-                        "bookmarked": False
-                    })
-                    st.success("✅ 라이브러리에 저장이 완료되었습니다!")
+    if uploaded_file is not None:
+        image = Image.open(uploaded_file)
+        st.image(image, caption="업로드된 문제", use_column_width=True)
+        
+        if st.button("동국 튜터식 해설 보기"):
+            with st.spinner("지문을 분석하고 있습니다..."):
+                try:
+                    response = model.generate_content([system_prompt, image])
+                    st.session_state.current_explanation = response.text
                     
-            except Exception as e:
-                st.error(f"오류가 발생했습니다: {e}")
+                    full_text = response.text
+                    title_line = full_text.split('\n')[0].replace("0. [유형 및 주제]: ", "").strip()
+                    
+                    if not any(item['content'] == full_text for item in st.session_state.library):
+                        st.session_state.library.append({
+                            "title": title_line if title_line else "새로운 문제 해설",
+                            "content": full_text,
+                            "bookmarked": False
+                        })
+                        st.success("✅ 라이브러리에 저장이 완료되었습니다!")
+                        
+                except Exception as e:
+                    st.error(f"오류가 발생했습니다: {e}")
 
-# 4. 버튼 클릭 블록 바깥 (항상 해설을 띄워주는 역할)
-if st.session_state.current_explanation:
-    st.subheader("💡 동국 튜터의 명쾌한 해설")
-    st.write(st.session_state.current_explanation)
-
-# 👆👆 여기까지입니다 👆👆
-                # [자동 저장 로직]
-                # AI 답변의 첫 줄(제목)을 가져와서 라이브러리에 저장합니다.
+    # 기억 장소에 해설이 있다면 메인 화면에서 항상 노출
+    if st.session_state.current_explanation:
+        st.subheader("💡 동국 튜터의 명쾌한 해설")
+        st.write(st.session_state.current_explanation)
 
               
 
