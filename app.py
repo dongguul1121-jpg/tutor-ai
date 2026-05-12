@@ -245,16 +245,17 @@ if st.session_state.current_explanation:
 # 👆👆 여기까지입니다 👆👆
                 # [자동 저장 로직]
                 # AI 답변의 첫 줄(제목)을 가져와서 라이브러리에 저장합니다.
-                full_text = response.text
-                title_line = full_text.split('\n')[0].replace("0. [유형 및 주제]: ", "").strip()
+    full_text = response.text               
+    title_line = full_text.split('\n')[0].replace("0. [유형 및 주제]: ", "").strip()
 
                 # 중복 저장을 방지하기 위해 현재 세션에 이미 저장되었는지 확인 후 추가
-                if not any(item['content'] == full_text for item in st.session_state.library):
-                    st.session_state.library.append({
-                        "title": title_line if title_line else "새로운 문제 해설",
-                        "content": full_text,
-                        "bookmarked": False
-                    })
-                    st.success("✅ 라이브러리에 저장이 완료되었습니다!")
-            except Exception as e:
-                st.error(f"오류가 발생했습니다: {e}")
+              
+if not any(item['content'] == full_text for item in st.session_state.library):             
+    st.session_state.library.append({                  
+        "title": title_line if title_line else "새로운 문제 해설",                   
+        "content": full_text,                   
+        "bookmarked": False              
+    })                 
+    st.success("✅ 라이브러리에 저장이 완료되었습니다!")           
+except Exception as e:            
+st.error(f"오류가 발생했습니다: {e}")
